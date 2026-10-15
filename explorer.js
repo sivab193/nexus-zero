@@ -1,4 +1,4 @@
-import {loadCodec,data} from './codec.js';
+import {loadCodec,data} from './codec.js?v=20261015-1';
 await loadCodec();
 const {dictionary,registry}=data(),list=document.querySelector('#registry'),search=document.querySelector('#search'),kind=document.querySelector('#kind'),count=document.querySelector('#count'),more=document.querySelector('#more');
 let limit=100;

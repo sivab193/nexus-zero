@@ -7,7 +7,7 @@ export const ALPHABETS = {
 
 let dictionary=[], registry={entries:[]}, wordIndex=new Map();
 export async function loadCodec(){
-  [dictionary,registry]=await Promise.all([fetch('./dictionary.json').then(r=>r.json()),fetch('./registry.json').then(r=>r.json())]);
+  [dictionary,registry]=await Promise.all([fetch('./dictionary.json?v=20261015-1').then(r=>r.json()),fetch('./registry.json?v=20261015-1').then(r=>r.json())]);
   wordIndex=new Map(dictionary.map((w,i)=>[w,i]));
   return {dictionary,registry};
 }

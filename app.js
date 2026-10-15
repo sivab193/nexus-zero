@@ -1,4 +1,4 @@
-import {loadCodec,encode,decode,data} from './codec.js';
+import {loadCodec,encode,decode,data} from './codec.js?v=20261015-1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let mode='anchor',selectedRealm='';
 await loadCodec();
