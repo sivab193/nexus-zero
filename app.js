@@ -47,11 +47,23 @@ function show(value){
 $('#form').addEventListener('submit',e=>{e.preventDefault();try{show(mode==='anchor'?encode($('#entry').value):decode($('#entry').value))}catch(err){$('#result').classList.add('show');$('#result-label').textContent='Route fault';$('#output').textContent=err.message;$('#output').className='notice';$('#result-detail').textContent='Check the input and try again.';$('#launch').classList.add('hidden');coordinateUrl.classList.add('hidden');copyUrl.classList.add('hidden')}});
 $('#copy').addEventListener('click',async()=>{await navigator.clipboard.writeText($('#output').textContent);$('#copy').textContent='Copied';setTimeout(()=>$('#copy').textContent=mode==='anchor'?'Copy words':'Copy URL',1200)});
 copyUrl.addEventListener('click',async()=>{await navigator.clipboard.writeText(coordinateUrl.href);copyUrl.textContent='Copied URL';setTimeout(()=>copyUrl.textContent='Copy Nexus URL',1200)});
+const randomInt=max=>crypto.getRandomValues(new Uint32Array(1))[0]%max;
+const randomWord=()=>dictionary[randomInt(dictionary.length)].replace(/[^a-z0-9]/g,'')||'zero';
+const randomChars=(alphabet,length)=>Array.from({length},()=>alphabet[randomInt(alphabet.length)]).join('');
+function randomUrl(entry){
+  const slug=`${randomWord()}-${randomWord()}-${randomInt(10000)}`;
+  if(entry.type==='exact_domain')return `https://${entry.domain}/${slug}`;
+  if(entry.type==='subdomain')return `https://${randomWord()}-${randomInt(1000)}.${entry.domain}/${randomWord()}`;
+  if(entry.type==='suffix')return `https://${slug}.${entry.suffix}/${randomWord()}`;
+  const payload=entry.id===21?randomChars('abcdefghijklmnopqrstuvwxyz',10)
+    :entry.alphabet==='NUMERIC'?randomChars('0123456789',8)
+    :entry.alphabet==='BASE64_URL'?randomChars('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',11)
+    :entry.alphabet==='FULL_URL'?`${slug}/${randomWord()}`:slug;
+  return `https://${entry.prefix}${payload}`;
+}
 $('#roll').addEventListener('click',()=>{
-  const chosen=selectedRealm===''?assigned[Math.floor(Math.random()*assigned.length)]:assigned.find(x=>String(x.id)===selectedRealm);if(!chosen)return;
-  const entry=chosen.entry;
-  const sample=entry.type==='exact_domain'?`https://${entry.domain}`:entry.type==='subdomain'?`https://sample.${entry.domain}`:entry.type==='suffix'?`https://example.${entry.suffix}`:`https://${entry.prefix}${entry.alphabet==='NUMERIC'?'123456':entry.alphabet==='BASE64_URL'?'dQw4w9WgXcQ':'sample'}`;
-  const value=encode(sample);$('#entry').value=value.coordinate;show(value);
+  const chosen=selectedRealm===''?assigned[randomInt(assigned.length)]:assigned.find(x=>String(x.id)===selectedRealm);if(!chosen)return;
+  const value=encode(randomUrl(chosen.entry));$('#entry').value=value.coordinate;show(value);
 });
 $('#theme').addEventListener('click',()=>{const light=document.documentElement.dataset.theme==='light';document.documentElement.dataset.theme=light?'dark':'light';localStorage.setItem('nz-theme',light?'dark':'light')});
 document.documentElement.dataset.theme=localStorage.getItem('nz-theme')||'dark';
