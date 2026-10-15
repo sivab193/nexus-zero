@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const [,,port,width,height,out]=process.argv;
+const tabs=await fetch(`http://127.0.0.1:${port}/json`).then(r=>r.json());
+const page=tabs.find(t=>t.type==='page');
+const ws=new WebSocket(page.webSocketDebuggerUrl);await new Promise((ok,no)=>{ws.onopen=ok;ws.onerror=no});
+let id=0;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&pending.has(m.id)){pending.get(m.id)(m);pending.delete(m.id)}};
+const call=(method,params={})=>new Promise((resolve,reject)=>{const callId=++id;pending.set(callId,m=>m.error?reject(m.error):resolve(m.result));ws.send(JSON.stringify({id:callId,method,params}))});
+await call('Emulation.setDeviceMetricsOverride',{width:+width,height:+height,deviceScaleFactor:1,mobile:+width<600});
+await call('Page.navigate',{url:'http://127.0.0.1:8099/'});await new Promise(r=>setTimeout(r,800));
+const metrics=await call('Page.getLayoutMetrics');const size=metrics.cssContentSize;
+const shot=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width:size.width,height:Math.min(size.height,+height),scale:1}});
+fs.writeFileSync(out,Buffer.from(shot.data,'base64'));ws.close();
